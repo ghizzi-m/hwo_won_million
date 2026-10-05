@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>تحدي المليون اللغوي 2.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --color-navy: #0a0e29;
+            --color-blue: #0047ff;
+            --color-electric: #00d2ff;
+            --color-gold: #ffd700;
+            --color-gold-dark: #b8860b;
+            --color-red: #ff3366;
+            --color-green: #00e676;
+            --font-main: 'Tajawal', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: var(--font-main);
+            background-color: var(--color-navy);
+            color: white;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .studio-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at center, #1a237e 0%, var(--color-navy) 70%);
+            z-index: -2;
+            transition: background 1s ease;
+        }
+
+        .studio-bg.correct { background: radial-gradient(circle at center, #004d40 0%, var(--color-navy) 70%); }
+        .studio-bg.wrong { background: radial-gradient(circle at center, #4a148c 0%, var(--color-navy) 70%); }
+        .studio-bg.suspense { background: radial-gradient(circle at center, #000000 0%, var(--color-navy) 90%); }
+
+        .rings-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) perspective(1000px) rotateX(60deg);
+            width: 200vw;
+            height: 200vw;
+            max-width: 1200px;
+            max-height: 1200px;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            border: 2px solid rgba(0, 210, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: pulse-ring 4s infinite linear;
+            box-shadow: 0 0 20px rgba(0, 210, 255, 0.1), inset 0 0 20px rgba(0, 210, 255, 0.1);
+        }
+        .ring:nth-child(1) { width: 40%; height: 40%; animation-delay: 0s; }
+        .ring:nth-child(2) { width: 60%; height: 60%; animation-delay: 1s; border-color: rgba(255, 215, 0, 0.1); box-shadow: 0 0 30px rgba(255, 215, 0, 0.1);}
+        .ring:nth-child(3) { width: 80%; height: 80%; animation-delay: 2s; }
+
+        @keyframes pulse-ring {
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1.2); opacity: 0; }
+        }
+
+        .glass-panel {
+            background: rgba(10, 14, 41, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 210, 255, 0.3);
+            box-shadow: 0 0 30px rgba(0, 71, 255, 0.4);
+            border-radius: 20px;
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, var(--color-gold), var(--color-gold-dark));
+            color: #000;
+            border: none;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+        .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6); }
+        .btn-gold:active { transform: translateY(1px); }
+
+        .btn-answer {
+            background: linear-gradient(90deg, rgba(0, 71, 255, 0.8), rgba(0, 210, 255, 0.5));
+            border: 1px solid var(--color-electric);
+            clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0 50%);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-answer:hover:not(:disabled) { background: linear-gradient(90deg, rgba(0, 71, 255, 1), rgba(0, 210, 255, 0.8)); box-shadow: 0 0 15px var(--color-electric); }
+        .btn-answer.selected { background: var(--color-gold); color: #000; border-color: #fff; }
+        .btn-answer.correct { background: var(--color-green); color: #000; border-color: #fff; animation: flash-green 0.5s; }
+        .btn-answer.wrong { background: var(--color-red); color: #fff; border-color: #fff; }
+        .btn-answer:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @keyframes flash-green { 0%, 100% { background: var(--color-green); } 50% { background: #fff; } }
+
+        /* Ladder */
+        .ladder-item { transition: all 0.3s; }
+        .ladder-item.active { color: #fff; font-weight: bold; font-size: 1.1rem; background: rgba(0, 210, 255, 0.2); border-radius: 8px; padding: 2px 8px; box-shadow: 0 0 10px var(--color-electric); }
+        .ladder-item.passed { color: var(--color-gold); }
+        .ladder-item.safe-haven { color: var(--color-electric); }
+        .ladder-item.safe-haven.passed { color: var(--color-gold); }
+
+        /* Special Question Types */
+        .clickable-word { display: inline-block; padding: 2px 8px; margin: 0 2px; border-radius: 4px; cursor: pointer; transition: background 0.2s; }
+        .clickable-word:hover { background: rgba(0, 210, 255, 0.3); }
+        
+        .drag-container { min-height: 60px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 10px; display: flex; gap: 10px; padding: 10px; align-items: center; justify-content: center; flex-wrap: wrap;}
+        .drag-item { background: rgba(0,71,255,0.6); padding: 8px 16px; border-radius: 8px; cursor: pointer; user-select: none; border: 1px solid var(--color-electric); }
+
+        /* Lock mechanism */
+        .lock-box { border: 2px solid #555; border-radius: 10px; padding: 10px; text-align: center; background: rgba(0,0,0,0.5); transition: all 0.3s; }
+        .lock-box.unlocked { border-color: var(--color-gold); box-shadow: 0 0 15px rgba(255,215,0,0.5); }
+        .lock-box i { font-size: 2rem; color: #555; margin-bottom: 5px; display: block; }
+        .lock-box.unlocked i { color: var(--color-gold); }
+
+        /* Screens */
+        .screen { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; flex-direction: column; justify-content: center; align-items: center; }
+        .screen.active { display: flex; animation: fadeIn 0.5s; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* UI overlays */
+        #hint-modal, #audience-modal { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 50; }
+        
+        .combo-text { font-size: 2rem; color: var(--color-gold); font-weight: 900; text-shadow: 0 0 10px var(--color-red); animation: pop 0.3s ease-out; position: absolute; pointer-events: none;}
+        @keyframes pop { 0% { transform: scale(0); opacity: 0; } 50% { transform: scale(1.5); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+
+        /* Progress Bar for Final Showdown */
+        .progress-circle { width: 120px; height: 120px; border-radius: 50%; background: conic-gradient(var(--color-gold) 0%, rgba(255,255,255,0.1) 0%); display: flex; align-items: center; justify-content: center; position: relative;}
+        .progress-circle::before { content: ""; position: absolute; width: 100px; height: 100px; background: var(--color-navy); border-radius: 50%; }
+        .progress-inner { position: relative; z-index: 10; font-size: 1.5rem; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <!-- Background Elements -->
+    <div class="studio-bg" id="studioBg"></div>
+    <div class="rings-container">
+        <div class="ring"></div>
+        <div class="ring"></div>
+        <div class="ring"></div>
+    </div>
+
+    <!-- معلومات المعلم والمدرسة الثابتة في جميع الشاشات -->
+    <div class="fixed bottom-2 w-full flex justify-between px-3 md:px-6 z-50 pointer-events-none text-white/60 text-[11px] md:text-sm font-bold" style="text-shadow: 0px 1px 3px rgba(0,0,0,0.8);">
+        <div>إعداد المعلم: غزي بن مساعد الغزي</div>
+        <div>مدرسة تحفيظ القرآن الكريم الابتدائية في الزلفي</div>
+    </div>
+
+    <div id="intro-screen" class="screen active p-4 text-center">
+        <div class="glass-panel p-8 md:p-12 max-w-lg w-full flex flex-col items-center">
+            <i class="fas fa-trophy text-6xl text-yellow-400 mb-4 drop-shadow-[0_0_15px_rgba(255,215,0,0.8)]"></i>
+            <h1 class="text-4xl md:text-5xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-600">تحدي المليون اللغوي 2.0</h1>
+            <p class="text-xl text-blue-200 mb-6">الجملة الاسمية والجملة الفعلية</p>
+            
+            <input type="text" id="player-name" placeholder="اكتب اسمك الثلاثي" class="w-full p-4 rounded-xl bg-blue-900/50 border border-blue-400 text-white text-center text-xl mb-6 focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/50 transition" autocomplete="off">
+            
+            <!-- أزرار اختيار مستوى الصعوبة -->
+            <div class="flex gap-4 w-full mb-4">
+                <button id="start-btn-beginner" class="btn-gold flex-1 py-3 rounded-xl flex flex-col items-center justify-center transition-transform hover:scale-105">
+                    <span class="text-2xl font-bold">مبتدئ</span>
+                    <span class="text-sm font-bold text-gray-800 opacity-80 mt-1">بدون وقت</span>
+                </button>
+                <button id="start-btn-advanced" class="btn-gold flex-1 py-3 rounded-xl flex flex-col items-center justify-center transition-transform hover:scale-105 border-2 border-red-500 shadow-[0_0_15px_rgba(255,0,0,0.4)]">
+                    <span class="text-2xl font-bold">متقدم</span>
+                    <span class="text-sm font-bold text-gray-800 opacity-80 mt-1"><i class="fas fa-clock mr-1"></i> 20 ثانية للسؤال</span>
+                </button>
+            </div>
+            
+            <button id="fullscreen-btn" class="text-sm text-gray-400 hover:text-white transition mt-2"><i class="fas fa-expand mr-1"></i> ملء الشاشة للحصول على أفضل تجربة</button>
+        </div>
+    </div>
+
+    <div id="countdown-screen" class="screen">
+        <div id="countdown-number" class="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-blue-500 drop-shadow-[0_0_20px_rgba(0,210,255,0.8)]">3</div>
+    </div>
+
+    <div id="game-screen" class="screen p-2 md:p-6">
+        
+        <!-- Header: Lifelines & Stats -->
+        <div class="w-full max-w-6xl flex justify-between items-start mb-4 h-auto md:h-16">
+            <!-- Lifelines -->
+            <div class="flex gap-2 md:gap-4">
+                <div class="flex flex-col items-center gap-1">
+                    <button id="ll-5050" class="w-12 h-10 md:w-16 md:h-12 glass-panel flex items-center justify-center text-lg md:text-xl font-bold hover:bg-blue-800/50 transition tooltip-container rounded-lg border border-blue-500/50" onclick="useLifeline('5050')">
+                        50:50
+                    </button>
+                    <span class="text-[10px] md:text-xs text-blue-300 font-bold">حذف إجابتين</span>
+                </div>
+                
+                <div class="flex flex-col items-center gap-1">
+                    <button id="ll-hint" class="w-12 h-10 md:w-16 md:h-12 glass-panel flex items-center justify-center text-lg md:text-xl hover:bg-blue-800/50 transition rounded-lg border border-blue-500/50" onclick="useLifeline('hint')">
+                        <i class="fas fa-lightbulb text-yellow-400"></i>
+                    </button>
+                    <span class="text-[10px] md:text-xs text-blue-300 font-bold">تلميح نحوي</span>
+                </div>
+
+                <div class="flex flex-col items-center gap-1">
+                    <button id="ll-audience" class="w-12 h-10 md:w-16 md:h-12 glass-panel flex items-center justify-center text-lg md:text-xl hover:bg-blue-800/50 transition rounded-lg border border-blue-500/50" onclick="useLifeline('audience')">
+                        <i class="fas fa-users text-blue-300"></i>
+                    </button>
+                    <span class="text-[10px] md:text-xs text-blue-300 font-bold">رأي الجمهور</span>
+                </div>
+
+                <div class="flex flex-col items-center gap-1">
+                    <button id="ll-swap" class="w-12 h-10 md:w-16 md:h-12 glass-panel flex items-center justify-center text-lg md:text-xl hover:bg-blue-800/50 transition rounded-lg border border-blue-500/50" onclick="useLifeline('swap')">
+                        <i class="fas fa-sync text-green-400"></i>
+                    </button>
+                    <span class="text-[10px] md:text-xs text-blue-300 font-bold">تبديل السؤال</span>
+                </div>
+            </div>
+            
+            <!-- Player Info & Exit Button -->
+            <div class="flex flex-col items-end">
+                <button onclick="location.reload()" class="mb-3 border border-red-500/70 bg-red-600/80 hover:bg-red-500 text-white shadow-[0_0_10px_rgba(255,0,0,0.4)] px-4 py-1.5 rounded-xl text-sm font-bold flex items-center transition-all hover:scale-105 cursor-pointer">
+                    <i class="fas fa-sign-out-alt ml-2"></i> خروج
+                </button>
+
+                <div class="text-xl md:text-2xl font-bold text-yellow-400" id="display-name">اللاعب</div>
+                <div class="text-lg text-blue-200">الرصيد: <span id="combo-display" class="text-white">x1</span></div>
+            </div>
+        </div>
+
+        <div class="w-full max-w-6xl flex flex-col lg:flex-row gap-6 h-[calc(100%-6rem)]">
+            
+            <!-- Main Question Area -->
+            <div class="flex-grow glass-panel p-6 flex flex-col justify-center relative overflow-hidden">
+                
+                <!-- المؤقت الرقمي البارز في أعلى وسط الشاشة -->
+                <div class="w-full flex justify-center mb-4">
+                    <div id="timer-container" class="text-4xl md:text-5xl font-black text-white bg-red-600/90 px-8 py-2 rounded-full shadow-[0_0_20px_rgba(255,0,0,0.8)] border-2 border-white/20 hidden items-center justify-center gap-3">
+                        <i class="fas fa-clock text-yellow-300"></i><span id="timer-text">20</span>
+                    </div>
+                </div>
+
+                <!-- شريط المؤقت الجميل أسفل عنوان السؤال -->
+                <div id="main-timer-bar" class="w-full h-4 bg-gray-800/80 rounded-full mb-6 hidden overflow-hidden border border-gray-600/50 shadow-inner">
+                    <div id="main-timer-fill" class="h-full w-full transition-all duration-1000 ease-linear" style="background-color: #00e676;"></div>
+                </div>
+
+                <!-- Dynamic Content Container -->
+                <div id="question-header" class="text-center mb-6 text-blue-300 font-bold text-lg md:text-xl">مرحلة الإحماء</div>
+                
+                <div id="question-text-container" class="text-2xl md:text-4xl font-bold text-center mb-10 leading-relaxed min-h-[80px] flex items-center justify-center">
+                    <!-- Text injected here -->
+                </div>
+
+                <!-- Answer Area (Changes based on type) -->
+                <div id="answers-container" class="w-full max-w-3xl mx-auto">
+                    <!-- Standard MCQ/Binary -->
+                    <div id="mcq-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden"></div>
+                    
+                    <!-- Drag and Drop / Order Area -->
+                    <div id="order-area" class="hidden flex flex-col items-center gap-6">
+                        <div class="text-blue-200 text-sm">اضغط على الكلمات بالترتيب لتكوين الجملة المطلوبة</div>
+                        <div id="word-bank" class="flex flex-wrap justify-center gap-3"></div>
+                        <div id="drop-zone" class="drag-container w-full"></div>
+                        <button id="submit-order-btn" class="btn-gold px-8 py-2 rounded-xl font-bold mt-4" style="display:none;">تأكيد الإجابة</button>
+                        <button id="reset-order-btn" class="text-sm text-gray-400 hover:text-white mt-2">إعادة الترتيب</button>
+                    </div>
+
+                    <!-- Level 14: Showdown -->
+                    <div id="showdown-area" class="hidden flex flex-col items-center w-full">
+                        <div class="flex justify-between w-full mb-4 items-center px-4">
+                            <div class="progress-circle" id="showdown-progress">
+                                <div class="progress-inner">0%</div>
+                            </div>
+                            <div class="flex-1 text-center text-xl" id="showdown-sentence">الجملة هنا</div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 w-full">
+                            <button class="btn-answer py-3 text-xl font-bold" onclick="handleShowdown('اسمية')">جملة اسمية</button>
+                            <button class="btn-answer py-3 text-xl font-bold" onclick="handleShowdown('فعلية')">جملة فعلية</button>
+                        </div>
+                    </div>
+
+                    <!-- Level 15: Million Locks -->
+                    <div id="locks-area" class="hidden flex flex-col items-center w-full">
+                        <div class="text-2xl mb-6 font-bold text-yellow-400" id="million-sentence">«قرأَ الطفلُ القصةَ، والطفلُ سعيدٌ.»</div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full mb-6" id="locks-grid">
+                            <!-- Locks injected via JS -->
+                        </div>
+                        <div id="lock-options" class="grid grid-cols-2 gap-3 w-full">
+                            <!-- Options for current lock -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prize Ladder Sidebar -->
+            <div class="lg:w-64 glass-panel p-4 hidden md:flex flex-col-reverse justify-between text-right text-gray-400 font-bold overflow-y-auto">
+                <ul id="prize-ladder" class="space-y-2 list-none p-0 m-0 w-full flex flex-col-reverse">
+                    <!-- Injected via JS -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hint Modal -->
+    <div id="hint-modal" class="glass-panel p-6 text-center border-yellow-400/50 max-w-sm w-full">
+        <i class="fas fa-lightbulb text-4xl text-yellow-400 mb-4 block"></i>
+        <h3 class="text-xl font-bold mb-2">تلميح نحوي</h3>
+        <p id="hint-text" class="text-lg text-white mb-6">...</p>
+        <button onclick="document.getElementById('hint-modal').style.display='none'" class="btn-gold px-6 py-2 rounded-xl">حسناً</button>
+    </div>
+
+    <!-- Audience Vote Modal -->
+    <div id="audience-modal" class="glass-panel p-6 text-center max-w-sm w-full">
+        <h3 class="text-xl font-bold mb-4"><i class="fas fa-users text-blue-400 mr-2"></i> رأي الجمهور</h3>
+        <div id="audience-bars" class="flex justify-around items-end h-40 mb-4 w-full px-4 border-b border-gray-600 pb-2">
+            <!-- Bars injected via JS -->
+        </div>
+        <button onclick="document.getElementById('audience-modal').style.display='none'" class="btn-gold px-6 py-2 rounded-xl mt-4">إغلاق</button>
+    </div>
+
+    <div id="results-screen" class="screen p-4">
+        <div class="glass-panel p-8 max-w-2xl w-full text-center relative overflow-hidden">
+            <div class="absolute -top-10 -left-10 w-32 h-32 bg-yellow-400 rounded-full mix-blend-multiply filter blur-2xl opacity-20"></div>
+            <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-blue-500 rounded-full mix-blend-multiply filter blur-2xl opacity-20"></div>
+            
+            <i class="fas fa-award text-7xl text-yellow-400 mb-4 drop-shadow-[0_0_20px_rgba(255,215,0,0.8)]" id="result-icon"></i>
+            <h2 class="text-4xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300" id="result-title">انتهى التحدي</h2>
+            
+            <h3 id="result-player-name" class="text-3xl text-blue-200 font-bold mb-3 drop-shadow-lg"></h3>
+            
+            <p class="text-2xl text-yellow-400 font-bold mb-6">الرصيد: <span id="final-score">0</span> نقطة</p>
+            
+            <div class="grid grid-cols-2 gap-4 text-right bg-black/30 p-6 rounded-xl mb-6 border border-gray-600/50">
+                <div><i class="fas fa-bullseye text-green-400 ml-2"></i>الدقة: <span id="stat-accuracy" class="font-bold">0%</span></div>
+                <div><i class="fas fa-bolt text-yellow-400 ml-2"></i>أفضل إجابات متتالية: <span id="stat-combo" class="font-bold">1</span></div>
+                <div><i class="fas fa-dumbbell text-blue-400 ml-2"></i>نقطة القوة: <span id="stat-strong" class="font-bold text-sm">--</span></div>
+                <div><i class="fas fa-book-open text-orange-400 ml-2"></i>يحتاج تدريب: <span id="stat-weak" class="font-bold text-sm">--</span></div>
+            </div>
+
+            <div id="badges-container" class="flex justify-center gap-4 mb-8 min-h-[60px]">
+                <!-- Badges injected here -->
+            </div>
+
+            <button onclick="location.reload()" class="btn-gold w-full py-3 rounded-xl text-xl font-bold"><i class="fas fa-redo ml-2"></i> العب مرة أخرى</button>
+        </div>
+    </div>
+
+    <script>
+        // --- State Management ---
+        const gameState = {
+            playerName: '',
+            isAdvancedMode: false,
+            currentStage: 0,
+            score: 0,
+            combo: 1,
+            maxCombo: 1,
+            correctAnswers: 0,
+            totalQuestionsAnswered: 0,
+            timer: null,
+            timeLeft: 0,
+            skills: { nominal: {c:0, t:0}, verbal: {c:0, t:0}, parts: {c:0, t:0} },
+            lifelines: { '5050': true, 'hint': true, 'audience': true, 'swap': true },
+            showdownState: { step: 0, correct: 0 },
+            millionState: { step: 0, unlocked: [false, false, false, false] },
+            isAnimating: false,
+            currentQuestionData: null
+        };
+
+        const prizeMoney = [
+            100, 200, 300, 500, 1000, // 1000 Safe Haven (Stage 4 index)
+            2000, 4000, 8000, 16000, 32000, // 32000 Safe Haven (Stage 9 index)
+            64000, 125000, 250000, 500000, 1000000
+        ];
+
+        // --- Question Database ---
+        // Types: 'binary', 'mcq', 'click-word', 'order', 'showdown', 'million'
+        const baseQuestions = [
+            // Stages 1-3: Warmup (Binary, speed) - Focus: Identify Type
+            { type: 'binary', text: "الشمسُ مشرقةٌ في الصباحِ.", options: ["اسمية", "فعلية"], correct: 0, hint: "الكلمة الأولى 'الشمس' هل هي اسم أم فعل؟", skill: 'nominal' },
+            { type: 'binary', text: "يُحلقُ الصقرُ عالياً في السماءِ.", options: ["اسمية", "فعلية"], correct: 1, hint: "بماذا بدأت الجملة؟ 'يُحلق' يدل على حدث.", skill: 'verbal' },
+            { type: 'binary', text: "الحديقةُ أزهارُها متفتحةٌ.", options: ["اسمية", "فعلية"], correct: 0, hint: "تبدأ باسم معرف بـ (أل).", skill: 'nominal' },
+            
+            // Stages 4-6: Identify Parts (MCQ) - Safe Haven 1 at Stage 5
+            { type: 'mcq', text: "أين (المبتدأ) في جملة: 'طالبُ العلمِ مجتهدٌ'؟", options: ["طالبُ", "العلمِ", "مجتهدٌ", "لا يوجد"], correct: 0, hint: "الاسم الذي نبدأ به الكلام ونتحدث عنه.", skill: 'parts' },
+            { type: 'mcq', text: "أين (الفاعل) في جملة: 'قرأتْ فاطمةُ كتاباً مفيداً'؟", options: ["قرأتْ", "فاطمةُ", "كتاباً", "مفيداً"], correct: 1, hint: "من الذي قام بفعل القراءة؟", skill: 'parts' },
+            { type: 'mcq', text: "حدد (الخبر) في جملة: 'العالِمُ الذي في المختبرِ ذكيٌ'؟", options: ["العالِمُ", "الذي", "في المختبرِ", "ذكيٌ"], correct: 3, hint: "ما هي الكلمة التي أتمت الفائدة وأخبرتنا عن العالِم؟", skill: 'parts' },
+            
+            // Stages 7-9: Click the keyword
+            { type: 'click-word', text: "نجحَ الطالبُ في الامتحان.", targetWord: "نجحَ", instruction: "اضغط على الكلمة التي جعلت هذه الجملة فعلية", hint: "ابحث عن الكلمة التي تدل على حدث مقترن بزمن.", skill: 'verbal' },
+            { type: 'click-word', text: "الكتابُ الممتعُ صديقٌ وفي.", targetWord: "صديقٌ", instruction: "اضغط على الكلمة التي تمثل (الخبر)", hint: "الكلمة التي تخبرنا معلومة أساسية عن الكتاب.", skill: 'parts' },
+            { type: 'click-word', text: "أسرعَ القطارُ نحو المحطة.", targetWord: "القطارُ", instruction: "اضغط على (الفاعل) في هذه الجملة", hint: "من الذي قام بفعل الإسراع؟", skill: 'parts' },
+            
+            // Stages 10-12: Arrange words (Simulated by clicking in order)
+            { type: 'order', text: "رتب الكلمات لتكوين جملة (اسمية) صحيحة:", words: ["واسعٌ", "العلمُ", "بحرٌ"], correctOrder: ["العلمُ", "بحرٌ", "واسعٌ"], hint: "ابدأ بالاسم المعرفة.", skill: 'nominal' },
+            { type: 'order', text: "رتب الكلمات لتكوين جملة (فعلية) صحيحة:", words: ["اللوحةَ", "الفنانُ", "رسمَ", "ببراعةٍ"], correctOrder: ["رسمَ", "الفنانُ", "اللوحةَ", "ببراعةٍ"], hint: "ابدأ بالفعل الماضي.", skill: 'verbal' },
+            { type: 'mcq', text: "حول الجملة الفعلية 'يفوزُ الصابرونَ' إلى جملة اسمية:", options: ["الصابرونَ فازوا", "الصابرونَ يفوزونَ", "فازَ الصابرونَ", "هم الصابرونَ"], correct: 1, hint: "اجعل الفاعل مبتدأ في بداية الجملة مع مطابقة الفعل.", skill: 'parts' },
+            
+            // Stage 13: Tough MCQ
+            { type: 'mcq', text: "في جملة 'المسلمون في شهرِ رمضانَ صائمون'، أين الخبر؟", options: ["المسلمون", "في شهرِ", "رمضانَ", "صائمون"], correct: 3, hint: "ما هي الكلمة التي أتمت المعنى وأخبرتنا عن المبتدأ؟", skill: 'parts' },
+            
+            // Stage 14: Showdown
+            { type: 'showdown', text: "مواجهة السرعة: حدد نوع 4 جمل!", sentences: [
+                { s: "النجاحُ ثمرةُ الجهدِ", t: "اسمية" },
+                { s: "يعملُ المهندسُ بجدٍ", t: "فعلية" },
+                { s: "الطائرُ فوقَ الشجرةِ", t: "اسمية" },
+                { s: "استعدَّ الفريقُ للمباراةِ", t: "فعلية" }
+            ], hint: "ركز على الكلمة الأولى لتحديد نوع الجملة.", skill: 'parts' },
+
+            // Stage 15: The Million (Locks)
+            { type: 'million', text: "سؤال المليون", sentence: "قرأَ الطفلُ القصةَ، والطفلُ سعيدٌ.", 
+              locks: [
+                  { name: 'الفعل', answer: 'قرأَ', options: ['الطفلُ', 'القصةَ', 'قرأَ', 'سعيدٌ'] },
+                  { name: 'الفاعل', answer: 'الطفلُ', options: ['القصةَ', 'قرأَ', 'الطفلُ', 'سعيدٌ'] },
+                  { name: 'المبتدأ', answer: 'الطفلُ', options: ['قرأَ', 'الطفلُ', 'سعيدٌ', 'القصةَ'] },
+                  { name: 'الخبر', answer: 'سعيدٌ', options: ['قرأَ', 'القصةَ', 'الطفلُ', 'سعيدٌ'] }
+              ], hint: "الجملة مقسمة لقسمين: الأول فعلي والثاني اسمي.", skill: 'parts' }
+        ];
+
+        // --- Audio System ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+            
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.5, now + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                osc.start(now);
+                osc.stop(now + 0.5);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.5, now + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } else if (type === 'suspense') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, now);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 2);
+                osc.start(now);
+                osc.stop(now + 2);
+            } else if (type === 'lock') {
+                 osc.type = 'square';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.setValueAtTime(1200, now + 0.1);
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.3, now + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            }
+        }
+
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ar-SA';
+                utterance.rate = 1.1;
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        // --- Initialization & UI Flow ---
+        document.getElementById('start-btn-beginner').addEventListener('click', () => initGame(false));
+        document.getElementById('start-btn-advanced').addEventListener('click', () => initGame(true));
+
+        function initGame(isAdvanced) {
+            const nameInput = document.getElementById('player-name').value.trim();
+            if (!nameInput) {
+                alert("الرجاء كتابة اسمك أولاً قبل بدء اللعبة!");
+                document.getElementById('player-name').focus();
+                return;
+            }
+
+            gameState.isAdvancedMode = isAdvanced;
+            gameState.playerName = nameInput;
+            
+            // Save to local storage (تخزين الاسم مؤقتاً أثناء اللعب الحالي)
+            localStorage.setItem('mln_player_name', gameState.playerName);
+            
+            document.getElementById('intro-screen').classList.remove('active');
+            document.getElementById('countdown-screen').classList.add('active');
+            
+            // Request full screen
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(e => console.log(e));
+            }
+            
+            startCountdown();
+        }
+
+        document.getElementById('fullscreen-btn').addEventListener('click', () => {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            }
+        });
+
+        // جعل مربع النص فارغاً دائماً عند بداية كل لعبة ليعرض العبارة الباهتة المطلوبة
+        window.onload = () => {
+            document.getElementById('player-name').value = '';
+            buildLadderUI();
+        };
+
+        function startCountdown() {
+            let count = 3;
+            const countEl = document.getElementById('countdown-number');
+            playSound('suspense');
+            
+            const interval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    countEl.textContent = count;
+                    countEl.style.animation = 'none';
+                    void countEl.offsetWidth; // trigger reflow
+                    countEl.style.animation = 'pop 0.5s ease-out';
+                } else {
+                    clearInterval(interval);
+                    document.getElementById('countdown-screen').classList.remove('active');
+                    document.getElementById('game-screen').classList.add('active');
+                    document.getElementById('display-name').textContent = gameState.playerName;
+                    speakText("أهلاً بك يا " + gameState.playerName + " في تحدي المليون اللغوي");
+                    
+                    // Initialize audio context properly on first user interaction
+                    if (audioCtx.state === 'suspended') audioCtx.resume();
+                    
+                    loadStage(0);
+                }
+            }, 1000);
+        }
+
+        function buildLadderUI() {
+            const ladder = document.getElementById('prize-ladder');
+            ladder.innerHTML = '';
+            for (let i = 0; i < prizeMoney.length; i++) {
+                const li = document.createElement('li');
+                li.className = 'ladder-item flex justify-between px-2 py-1';
+                li.id = `ladder-${i}`;
+                
+                const numSpan = document.createElement('span');
+                numSpan.textContent = i + 1;
+                
+                const valSpan = document.createElement('span');
+                valSpan.textContent = prizeMoney[i].toLocaleString();
+                
+                // Safe havens at index 4 (1000) and 9 (32000)
+                if (i === 4 || i === 9 || i === 14) {
+                    li.classList.add('safe-haven');
+                    valSpan.innerHTML = '<i class="fas fa-gem text-xs mr-1"></i> ' + valSpan.textContent;
+                }
+                
+                li.appendChild(valSpan);
+                li.appendChild(numSpan);
+                ladder.appendChild(li); // Flex column-reverse handles visual bottom-up
+            }
+        }
+
+        function updateLadderUI() {
+            const items = document.querySelectorAll('.ladder-item');
+            items.forEach((item, index) => {
+                item.classList.remove('active');
+                if (index < gameState.currentStage) {
+                    item.classList.add('passed');
+                } else if (index === gameState.currentStage) {
+                    item.classList.add('active');
+                    item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        }
+
+        // --- Core Game Logic ---
+        function loadStage(stageIndex) {
+            if (stageIndex >= baseQuestions.length) {
+                endGame(true);
+                return;
+            }
+            
+            gameState.currentStage = stageIndex;
+            gameState.isAnimating = false;
+            updateLadderUI();
+            
+            const q = baseQuestions[stageIndex];
+            gameState.currentQuestionData = q;
+            
+            // Reset UI
+            document.getElementById('mcq-grid').classList.add('hidden');
+            document.getElementById('order-area').classList.add('hidden');
+            document.getElementById('showdown-area').classList.add('hidden');
+            document.getElementById('locks-area').classList.add('hidden');
+            
+            // إخفاء وإيقاف المؤقت
+            document.getElementById('timer-container').style.display = 'none';
+            if (document.getElementById('main-timer-bar')) {
+                document.getElementById('main-timer-bar').style.display = 'none';
+            }
+            clearInterval(gameState.timer);
+            
+            document.getElementById('studioBg').className = 'studio-bg';
+            
+            const header = document.getElementById('question-header');
+            const textContainer = document.getElementById('question-text-container');
+            
+            // Set Headers
+            if (stageIndex < 3) header.textContent = `مرحلة الإحماء (${stageIndex + 1}/3)`;
+            else if (stageIndex === 13) header.textContent = "المواجهة النهائية!";
+            else if (stageIndex === 14) header.textContent = "سؤال المليووووون!";
+            else header.textContent = `السؤال ${stageIndex + 1} - لربح ${prizeMoney[stageIndex].toLocaleString()} نقطة`;
+
+            // Setup specific UI based on type
+            if (q.type === 'binary' || q.type === 'mcq') {
+                textContainer.innerHTML = q.text;
+                setupMCQ(q);
+            } else if (q.type === 'click-word') {
+                textContainer.innerHTML = q.instruction;
+                setupClickWord(q);
+            } else if (q.type === 'order') {
+                textContainer.innerHTML = q.text;
+                setupOrder(q);
+            } else if (q.type === 'showdown') {
+                textContainer.innerHTML = q.text;
+                setupShowdown(q);
+            } else if (q.type === 'million') {
+                textContainer.innerHTML = "";
+                setupMillion(q);
+            }
+
+            // تطبيق منطق الوقت حسب الوضع المختار (متقدم فقط)
+            if (q.type !== 'showdown') {
+                if (gameState.isAdvancedMode) {
+                    startTimer(20); 
+                }
+            }
+        }
+
+        function setupMCQ(q) {
+            const grid = document.getElementById('mcq-grid');
+            grid.innerHTML = '';
+            grid.classList.remove('hidden');
+            
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-answer py-4 px-6 text-xl md:text-2xl font-bold w-full rounded-xl shadow-lg flex items-center';
+                
+                const prefixes = ['أ', 'ب', 'ج', 'د'];
+                btn.innerHTML = `<span class="text-yellow-400 ml-4 font-black w-8 inline-block text-right">${prefixes[index]} :</span> <span class="flex-1 text-center">${opt}</span>`;
+                
+                btn.dataset.index = index;
+                btn.onclick = () => handleAnswer(index, btn);
+                grid.appendChild(btn);
+            });
+        }
+
+        function setupClickWord(q) {
+            const grid = document.getElementById('mcq-grid');
+            grid.innerHTML = '';
+            grid.classList.remove('hidden');
+            grid.classList.remove('md:grid-cols-2');
+            grid.classList.add('grid-cols-1');
+            
+            const words = q.text.split(' ');
+            let html = '<div class="text-3xl md:text-5xl font-bold leading-loose text-center w-full" dir="rtl">';
+            
+            words.forEach((word, index) => {
+                const cleanWord = word.replace(/[.,]/g, '');
+                html += `<span class="clickable-word bg-blue-900/40 border border-blue-500/30 shadow-inner" data-word="${cleanWord}" onclick="handleWordClick(this, '${cleanWord}')">${word}</span> `;
+            });
+            html += '</div>';
+            
+            grid.innerHTML = html;
+        }
+
+        function handleWordClick(element, clickedWord) {
+            if (gameState.isAnimating) return;
+            gameState.isAnimating = true;
+            clearInterval(gameState.timer); 
+            
+            const q = gameState.currentQuestionData;
+            
+            document.querySelectorAll('.clickable-word').forEach(el => {
+                el.classList.remove('bg-yellow-400', 'text-black');
+            });
+            
+            element.classList.add('bg-yellow-400', 'text-black');
+            
+            setTimeout(() => {
+                const isCorrect = clickedWord === q.targetWord;
+                processAnswerResult(isCorrect, q.skill);
+            }, 500);
+        }
+
+        let orderSelection = [];
+        function setupOrder(q) {
+            const orderArea = document.getElementById('order-area');
+            orderArea.classList.remove('hidden');
+            const wordBank = document.getElementById('word-bank');
+            const dropZone = document.getElementById('drop-zone');
+            const submitBtn = document.getElementById('submit-order-btn');
+            
+            wordBank.innerHTML = '';
+            dropZone.innerHTML = '';
+            orderSelection = [];
+            submitBtn.style.display = 'none';
+            
+            let shuffled = [...q.words].sort(() => Math.random() - 0.5);
+            
+            shuffled.forEach((word, index) => {
+                const item = document.createElement('div');
+                item.className = 'drag-item text-xl font-bold';
+                item.textContent = word;
+                item.onclick = () => selectWordForOrder(item, word);
+                wordBank.appendChild(item);
+            });
+            
+            document.getElementById('reset-order-btn').onclick = () => setupOrder(q);
+            
+            submitBtn.onclick = () => {
+                if (gameState.isAnimating) return;
+                gameState.isAnimating = true;
+                clearInterval(gameState.timer); 
+                
+                const isCorrect = JSON.stringify(orderSelection) === JSON.stringify(q.correctOrder);
+                processAnswerResult(isCorrect, q.skill);
+            };
+        }
+
+        function selectWordForOrder(element, word) {
+            if (gameState.isAnimating) return;
+            
+            element.style.display = 'none';
+            
+            const placedItem = document.createElement('div');
+            placedItem.className = 'drag-item bg-green-700 border-green-400 text-xl font-bold';
+            placedItem.textContent = word;
+            document.getElementById('drop-zone').appendChild(placedItem);
+            
+            orderSelection.push(word);
+            
+            if (orderSelection.length === gameState.currentQuestionData.words.length) {
+                document.getElementById('submit-order-btn').style.display = 'block';
+            }
+        }
+
+        function setupShowdown(q) {
+            document.getElementById('showdown-area').classList.remove('hidden');
+            gameState.showdownState = { step: 0, correct: 0 };
+            document.getElementById('showdown-progress').querySelector('.progress-inner').textContent = '0%';
+            document.getElementById('showdown-progress').style.background = `conic-gradient(var(--color-gold) 0%, rgba(255,255,255,0.1) 0%)`;
+            
+            showNextShowdownSentence();
+            if (gameState.isAdvancedMode) {
+                startTimer(20); 
+            }
+        }
+
+        function showNextShowdownSentence() {
+            const q = gameState.currentQuestionData;
+            const state = gameState.showdownState;
+            
+            if (state.step >= q.sentences.length) {
+                gameState.isAnimating = true;
+                clearInterval(gameState.timer); 
+                const passed = state.correct === q.sentences.length;
+                processAnswerResult(passed, q.skill);
+                return;
+            }
+            
+            document.getElementById('showdown-sentence').textContent = q.sentences[state.step].s;
+        }
+
+        window.handleShowdown = function(type) {
+            if (gameState.isAnimating) return;
+            const q = gameState.currentQuestionData;
+            const state = gameState.showdownState;
+            
+            const isCorrect = q.sentences[state.step].t === type;
+            if (isCorrect) {
+                playSound('correct');
+                state.correct++;
+                const percent = (state.correct / q.sentences.length) * 100;
+                document.getElementById('showdown-progress').querySelector('.progress-inner').textContent = `${Math.round(percent)}%`;
+                document.getElementById('showdown-progress').style.background = `conic-gradient(var(--color-gold) ${percent}%, rgba(255,255,255,0.1) ${percent}%)`;
+            } else {
+                playSound('wrong');
+                gameState.combo = 1;
+            }
+            
+            state.step++;
+            showNextShowdownSentence();
+        }
+
+        function setupMillion(q) {
+            document.getElementById('locks-area').classList.remove('hidden');
+            gameState.millionState = { step: 0, unlocked: [false, false, false, false] };
+            renderLocks();
+            renderLockOptions();
+        }
+
+        function renderLocks() {
+            const q = gameState.currentQuestionData;
+            const grid = document.getElementById('locks-grid');
+            grid.innerHTML = '';
+            
+            q.locks.forEach((lock, index) => {
+                const isUnlocked = gameState.millionState.unlocked[index];
+                const box = document.createElement('div');
+                box.className = `lock-box ${isUnlocked ? 'unlocked' : ''} ${index === gameState.millionState.step ? 'ring-2 ring-blue-500' : ''}`;
+                
+                box.innerHTML = `
+                    <i class="fas ${isUnlocked ? 'fa-lock-open' : 'fa-lock'}"></i>
+                    <div class="text-sm text-gray-400 mb-1">${lock.name}</div>
+                    <div class="font-bold text-lg h-8">${isUnlocked ? lock.answer : '؟؟؟'}</div>
+                `;
+                grid.appendChild(box);
+            });
+        }
+
+        function renderLockOptions() {
+            const q = gameState.currentQuestionData;
+            const step = gameState.millionState.step;
+            const optionsContainer = document.getElementById('lock-options');
+            optionsContainer.innerHTML = '';
+            
+            if (step >= q.locks.length) return;
+            
+            const currentLock = q.locks[step];
+            currentLock.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-answer py-3 text-lg font-bold rounded-xl';
+                btn.textContent = opt;
+                btn.onclick = () => handleLockAnswer(opt, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function handleLockAnswer(selectedOpt, btnElement) {
+            if (gameState.isAnimating) return;
+            gameState.isAnimating = true;
+            clearInterval(gameState.timer);
+            
+            const q = gameState.currentQuestionData;
+            const step = gameState.millionState.step;
+            const correctAns = q.locks[step].answer;
+            
+            if (selectedOpt === correctAns) {
+                playSound('lock');
+                btnElement.classList.add('correct');
+                gameState.millionState.unlocked[step] = true;
+                
+                setTimeout(() => {
+                    gameState.millionState.step++;
+                    renderLocks();
+                    gameState.isAnimating = false;
+                    
+                    if (gameState.millionState.step >= q.locks.length) {
+                        setTimeout(() => processAnswerResult(true, q.skill), 1000);
+                    } else {
+                        renderLockOptions();
+                        if (gameState.isAdvancedMode) startTimer(20);
+                    }
+                }, 800);
+            } else {
+                btnElement.classList.add('wrong');
+                playSound('wrong');
+                setTimeout(() => processAnswerResult(false, q.skill), 1000);
+            }
+        }
+
+        function handleAnswer(selectedIndex, btnElement) {
+            if (gameState.isAnimating) return;
+            gameState.isAnimating = true;
+            clearInterval(gameState.timer); 
+            
+            const q = gameState.currentQuestionData;
+            const isCorrect = selectedIndex === q.correct;
+            
+            btnElement.classList.add('selected');
+            document.getElementById('studioBg').classList.add('suspense');
+            playSound('suspense');
+
+            setTimeout(() => {
+                document.getElementById('studioBg').classList.remove('suspense');
+                if (isCorrect) {
+                    btnElement.classList.remove('selected');
+                    btnElement.classList.add('correct');
+                } else {
+                    btnElement.classList.remove('selected');
+                    btnElement.classList.add('wrong');
+                    const btns = document.getElementById('mcq-grid').children;
+                    if(btns[q.correct]) btns[q.correct].classList.add('correct');
+                }
+                
+                processAnswerResult(isCorrect, q.skill);
+            }, 2000);
+        }
+
+        function processAnswerResult(isCorrect, skillType) {
+            clearInterval(gameState.timer);
+            document.getElementById('timer-container').style.display = 'none';
+            if (document.getElementById('main-timer-bar')) {
+                document.getElementById('main-timer-bar').style.display = 'none';
+            }
+
+            gameState.totalQuestionsAnswered++;
+            gameState.skills[skillType].t++;
+
+            if (isCorrect) {
+                gameState.correctAnswers++;
+                gameState.skills[skillType].c++;
+                gameState.combo++;
+                if (gameState.combo > gameState.maxCombo) gameState.maxCombo = gameState.combo;
+                
+                let basePoints = prizeMoney[gameState.currentStage];
+                let prevPoints = gameState.currentStage > 0 ? prizeMoney[gameState.currentStage - 1] : 0;
+                let earned = basePoints - prevPoints;
+                
+                gameState.score += earned * (1 + (gameState.combo * 0.1));
+                
+                document.getElementById('combo-display').textContent = `x${gameState.combo}`;
+                document.getElementById('combo-display').style.color = gameState.combo > 2 ? 'var(--color-gold)' : 'white';
+                
+                playSound('correct');
+                document.getElementById('studioBg').className = 'studio-bg correct';
+                
+                setTimeout(() => {
+                    if (gameState.currentStage === baseQuestions.length - 1) {
+                        endGame(true);
+                    } else {
+                        loadStage(gameState.currentStage + 1);
+                    }
+                }, 2000);
+
+            } else {
+                gameState.combo = 1;
+                document.getElementById('combo-display').textContent = 'x1';
+                document.getElementById('combo-display').style.color = 'white';
+                
+                playSound('wrong');
+                document.getElementById('studioBg').className = 'studio-bg wrong';
+                
+                let dropToStage = 0;
+                if (gameState.currentStage > 9) dropToStage = 10;
+                else if (gameState.currentStage > 4) dropToStage = 5;
+                
+                gameState.score = dropToStage > 0 ? prizeMoney[dropToStage-1] : 0;
+
+                setTimeout(() => {
+                    endGame(false);
+                }, 3000);
+            }
+        }
+
+        function startTimer(seconds) {
+            const container = document.getElementById('timer-container');
+            const text = document.getElementById('timer-text');
+            const barContainer = document.getElementById('main-timer-bar');
+            const barFill = document.getElementById('main-timer-fill');
+            
+            container.classList.remove('hidden');
+            container.style.display = 'flex';
+            if (barContainer) {
+                barContainer.classList.remove('hidden');
+                barContainer.style.display = 'block';
+            }
+
+            gameState.timeLeft = seconds;
+            const totalTime = seconds;
+            text.textContent = gameState.timeLeft;
+            
+            if (barFill) {
+                barFill.style.transitionDuration = '0s';
+                barFill.style.width = '100%';
+                barFill.style.backgroundColor = '#00e676';
+                void barFill.offsetWidth; 
+                barFill.style.transitionDuration = '1s';
+            }
+            
+            clearInterval(gameState.timer);
+            gameState.timer = setInterval(() => {
+                gameState.timeLeft--;
+                text.textContent = gameState.timeLeft;
+                
+                if (barFill) {
+                    const percentage = (gameState.timeLeft / totalTime) * 100;
+                    barFill.style.width = `${percentage}%`;
+                    
+                    if (percentage <= 25) {
+                        barFill.style.backgroundColor = '#ff3366'; 
+                    } else if (percentage <= 50) {
+                        barFill.style.backgroundColor = '#ffd700'; 
+                    }
+                }
+                
+                if (gameState.timeLeft <= 3 && gameState.timeLeft > 0) {
+                    container.classList.add('animate-pulse');
+                    playSound('lock');
+                } else {
+                    container.classList.remove('animate-pulse');
+                }
+
+                if (gameState.timeLeft <= 0) {
+                    clearInterval(gameState.timer);
+                    if (!gameState.isAnimating) {
+                        gameState.isAnimating = true;
+                        processAnswerResult(false, gameState.currentQuestionData.skill);
+                    }
+                }
+            }, 1000);
+        }
+
+        window.useLifeline = function(type) {
+            if (!gameState.lifelines[type] || gameState.isAnimating) return;
+            const q = gameState.currentQuestionData;
+            
+            gameState.lifelines[type] = false;
+            document.getElementById(`ll-${type}`).style.opacity = '0.3';
+            document.getElementById(`ll-${type}`).style.cursor = 'not-allowed';
+            
+            if (type === '5050' && (q.type === 'mcq' || q.type === 'binary')) {
+                const btns = document.getElementById('mcq-grid').children;
+                let removed = 0;
+                for (let i = 0; i < btns.length; i++) {
+                    if (i !== q.correct && removed < (q.options.length / 2)) {
+                        btns[i].style.visibility = 'hidden';
+                        removed++;
+                    }
+                }
+                playSound('correct');
+            } 
+            else if (type === 'hint') {
+                document.getElementById('hint-text').textContent = q.hint;
+                document.getElementById('hint-modal').style.display = 'block';
+                playSound('correct');
+            }
+            else if (type === 'audience' && (q.type === 'mcq' || q.type === 'binary')) {
+                let votes = Array(q.options.length).fill(0);
+                let remaining = 100;
+                
+                votes[q.correct] = Math.floor(Math.random() * 30) + 40;
+                remaining -= votes[q.correct];
+                
+                for(let i=0; i<votes.length; i++) {
+                    if(i !== q.correct) {
+                        if(i === votes.length -1 && i !== q.correct) {
+                            votes[i] = remaining; 
+                        } else {
+                            let share = Math.floor(Math.random() * remaining);
+                            votes[i] = share;
+                            remaining -= share;
+                        }
+                    }
+                }
+                
+                const container = document.getElementById('audience-bars');
+                container.innerHTML = '';
+                const prefixes = ['أ', 'ب', 'ج', 'د'];
+                
+                votes.forEach((v, i) => {
+                    const col = document.createElement('div');
+                    col.className = 'flex flex-col items-center w-1/4';
+                    col.innerHTML = `
+                        <div class="text-xs mb-1">${v}%</div>
+                        <div class="w-8 bg-blue-500 rounded-t-sm transition-all duration-1000" style="height: 0px"></div>
+                        <div class="mt-2 font-bold">${prefixes[i]}</div>
+                    `;
+                    container.appendChild(col);
+                    setTimeout(() => {
+                        col.querySelector('.bg-blue-500').style.height = `${v}px`;
+                    }, 50);
+                });
+                
+                document.getElementById('audience-modal').style.display = 'block';
+                playSound('correct');
+            }
+            else if (type === 'swap') {
+                setTimeout(() => processAnswerResult(true, q.skill), 500);
+            }
+        }
+
+        function endGame(won) {
+            document.getElementById('game-screen').classList.remove('active');
+            const resScreen = document.getElementById('results-screen');
+            resScreen.classList.add('active');
+            
+            const accuracy = gameState.totalQuestionsAnswered === 0 ? 0 : 
+                Math.round((gameState.correctAnswers / gameState.totalQuestionsAnswered) * 100);
+            
+            document.getElementById('result-player-name').textContent = "البطل: " + gameState.playerName;
+            
+            document.getElementById('final-score').textContent = Math.round(gameState.score).toLocaleString();
+            document.getElementById('stat-accuracy').textContent = `${accuracy}%`;
+            document.getElementById('stat-combo').textContent = `x${gameState.maxCombo}`;
+            
+            let bestSkill = 'لا يوجد';
+            let bestRatio = -1;
+            let weakSkill = 'لا يوجد';
+            let weakRatio = 101;
+            
+            const skillNames = { nominal: 'الجملة الاسمية', verbal: 'الجملة الفعلية', parts: 'أركان الجملة' };
+            
+            for (const [key, data] of Object.entries(gameState.skills)) {
+                if (data.t > 0) {
+                    const ratio = data.c / data.t;
+                    if (ratio > bestRatio) { bestRatio = ratio; bestSkill = skillNames[key]; }
+                    if (ratio < weakRatio) { weakRatio = ratio; weakSkill = skillNames[key]; }
+                }
+            }
+            
+            if (bestRatio === weakRatio && bestRatio === 1) weakSkill = 'أنت محترف!';
+            
+            document.getElementById('stat-strong').textContent = bestSkill;
+            document.getElementById('stat-weak').textContent = weakSkill;
+            
+            const titleEl = document.getElementById('result-title');
+            const iconEl = document.getElementById('result-icon');
+            
+            if (won) {
+                titleEl.textContent = "بطل المليوووون!";
+                titleEl.className = "text-5xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-600";
+                iconEl.className = "fas fa-crown text-8xl text-yellow-400 mb-4 drop-shadow-[0_0_30px_rgba(255,215,0,1)]";
+                playSound('correct');
+            } else {
+                titleEl.textContent = "نهاية اللعبة";
+                iconEl.className = "fas fa-times-circle text-6xl text-red-500 mb-4 drop-shadow-[0_0_20px_rgba(255,0,0,0.8)]";
+            }
+            
+            const badgesContainer = document.getElementById('badges-container');
+            badgesContainer.innerHTML = '';
+            
+            if (accuracy >= 90) addBadge(badgesContainer, 'نجم النحو', 'fa-star', 'text-yellow-400');
+            if (gameState.maxCombo >= 5) addBadge(badgesContainer, 'سيد الكومبو', 'fa-bolt', 'text-blue-400');
+            if (gameState.timeLeft > 0 && gameState.isAdvancedMode) addBadge(badgesContainer, 'سريع البديهة', 'fa-stopwatch', 'text-green-400');
+            if (won) addBadge(badgesContainer, 'المليونير اللغوي', 'fa-gem', 'text-purple-400');
+            
+            if(badgesContainer.innerHTML === '') {
+                 badgesContainer.innerHTML = '<span class="text-gray-500 text-sm">حاول مرة أخرى لتحصل على شارات!</span>';
+            }
+        }
+
+        function addBadge(container, title, iconClass, colorClass) {
+            const badge = document.createElement('div');
+            badge.className = 'flex flex-col items-center p-2 glass-panel tooltip-container w-24';
+            badge.innerHTML = `
+                <i class="fas ${iconClass} text-3xl ${colorClass} mb-1"></i>
+                <span class="text-xs font-bold text-center leading-tight">${title}</span>
+            `;
+            badge.style.animation = 'pop 0.5s ease-out backwards';
+            badge.style.animationDelay = `${container.children.length * 0.2}s`;
+            container.appendChild(badge);
+        }
+
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            console.log("Game Error: ", msg);
+            return false;
+        };
+    </script>
+</body>
+</html>
